@@ -6,7 +6,7 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const TOKEN_URL = "https://api.notion.com/v1/oauth/token";
 const REDIRECT_URI = process.env.REDIRECT_URI;
-const PYTHON_API_URL = 'http://127.0.0.1:8000/api/process_data'
+const PYTHON_API_URL = 'https://gos-backend.onrender.com/api/process_data'
 // const PYTHON_API_URL = process.env.PYTHON_API_URL;
 const ENCODING_KEY = process.env.ENCODING_KEY;
 
