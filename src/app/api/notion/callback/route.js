@@ -42,18 +42,20 @@ export async function GET(req) {
   const accessToken = tokenData.access_token;
   const encodedAccessToken = encodeAccessToken(accessToken, ENCODING_KEY);
   
-  const PYTHON_API_URL = 'https://gos-backend.onrender.com/api/process_data'
   // Start background processing (you can refactor this to an actual background process or use workers)
-  fetch('https://gos-backend.onrender.com/api/process_data', {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      access_token: accessToken,
-      user_text: userText, // This can come from the session or another source
-    }),
-  });
+  setTimeout(() => {
+    fetch('https://gos-backend.onrender.com/api/process_data', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          access_token: accessToken,
+          user_text: userText, // This can come from the session or another source
+        }),
+      }).catch(err => console.error('Fetch to backend failed:', err));
+  }, 0);
+  
 
   const host = req.headers.get("host");
   const redirectUrl = `http://${host}/?encoded_token=${encodedAccessToken}&status=processing`;
