@@ -6,7 +6,7 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const TOKEN_URL = "https://api.notion.com/v1/oauth/token";
 const REDIRECT_URI = process.env.REDIRECT_URI;
-const PYTHON_API_URL = 'https://gos-backend.onrender.com/api/process_data'
+
 // const PYTHON_API_URL = process.env.PYTHON_API_URL;
 const ENCODING_KEY = process.env.ENCODING_KEY;
 
@@ -42,7 +42,7 @@ export async function GET(req) {
   const accessToken = tokenData.access_token;
   const encodedAccessToken = encodeAccessToken(accessToken, ENCODING_KEY);
   
-
+  const PYTHON_API_URL = 'https://gos-backend.onrender.com/api/process_data'
   // Start background processing (you can refactor this to an actual background process or use workers)
   fetch(PYTHON_API_URL, {
     method: "POST",
