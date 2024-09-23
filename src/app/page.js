@@ -50,6 +50,7 @@ export default function Home() {
         const pollStatus = async () => {          
           // const res = await fetch(process.env.PYTHON_API_CHECK_STATUS, {
           const res = await fetch('https://gos-backend.onrender.com/api/check_status', {
+          // const res = await fetch('http://127.0.0.1:5000/api/check_status', {
             method: "GET",
             headers: {
               "Authorization": `Bearer ${token}`, // Send token in headers
