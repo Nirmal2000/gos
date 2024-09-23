@@ -44,7 +44,7 @@ export async function GET(req) {
   
   const PYTHON_API_URL = 'https://gos-backend.onrender.com/api/process_data'
   // Start background processing (you can refactor this to an actual background process or use workers)
-  fetch(PYTHON_API_URL, {
+  fetch('https://gos-backend.onrender.com/api/process_data', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
