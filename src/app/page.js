@@ -42,6 +42,7 @@ export default function Home() {
         token = decodeAccessToken(encodedToken, ENCODING_KEY);        
       }
       console.log("-->",encodedToken, status, token)
+      setAccessToken(token)
 
       // If status is "processing", poll for updates
       if (status === "processing" && token) {        
@@ -64,7 +65,7 @@ export default function Home() {
             localStorage.removeItem('access_token');
             localStorage.removeItem('status');
           } else {
-            setTimeout(pollStatus, 5000); // Poll again in 3 seconds
+            setTimeout(pollStatus, 10000); // Poll again in 3 seconds
           }
         };
 
@@ -73,34 +74,107 @@ export default function Home() {
     }
   }, []);
 
+  const handleResetStatus = async () => {
+    // const res = await fetch('http://127.0.0.1:5000/api/reset_status', {
+    const res = await fetch('https://gos-backend.onrender.com/api/reset_status', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        access_token: accessToken,  // You need to pass the correct accessToken
+      }),
+    });
+
+    const data = await res.json();
+    if (data.status === "reset_successful") {
+      setCompleted(false);
+      setLoading(false);
+    }
+  };
+
   return (
-    <div>
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-800 to-blue-600 px-4">
+      {/* Title */}
+      <h1 className="font-brunoAce text-white text-[64px] sm:text-[102px] leading-[78px] sm:leading-[123px] text-center mb-2 sm:mb-4">
+        Goal OS
+      </h1>
+
+      {/* Subtitle */}
+      <h2 className="font-abeeZee text-white text-[16px] sm:text-[20px] leading-[22px] sm:leading-[26px] text-center mb-6 sm:mb-20">
+        Don’t be shy, Enter all your thoughts! Goal + Specifications + Timeline
+      </h2>
+
       {!loading && !completed && (
-        <form onSubmit={handleSubmit}>
-          <h1>Enter Your Goal or Description</h1>
-          <input
-            type="text"
-            value={userText}
-            onChange={(e) => setUserText(e.target.value)}
-            required
-          />
-          <button type="submit">Connect to Notion</button>
+        <form onSubmit={handleSubmit} className="relative w-full max-w-[628px]">
+          {/* Input field container */}
+          <div className="relative w-full h-[61px]">
+            {/* Background with blur effect */}
+            <div className="absolute inset-0 bg-gray-200/25 backdrop-blur-sm rounded-[32px]"></div>
+
+            {/* Icon/Image on the left side */}
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 w-[55.85px] h-[57px] bg-[url('/images/shine.png')] bg-cover"></div>
+
+            {/* Input field (not affected by blur) */}
+            <input
+              type="text"
+              value={userText}
+              onChange={(e) => setUserText(e.target.value)}
+              className="relative w-full h-full pl-[80px] pr-4 py-2 rounded-[32px] bg-transparent text-white placeholder:text-white/60 font-abeeZee text-[20px] leading-[24px] outline-none z-10"
+              placeholder="I wanna start a drop shipping business. Within a month."
+              required
+            />
+          </div>
+
+          {/* Button */}
+          <button
+            type="submit"
+            className="w-[220px] h-[54px] mt-6 mx-auto bg-gray-200/90 backdrop-blur-md rounded-[35px] text-[#2C4C80] font-abeeZee font-medium text-[20px] leading-[26px] text-center flex items-center justify-center"
+          >
+            Connect to Notion
+          </button>
         </form>
       )}
 
       {loading && (
-        <div>
-          <h1>Loading...</h1>
-          <p>Processing your data. Please wait.</p>
+        <div className="flex flex-col items-center justify-center">
+          <p className="text-white text-center mb-4 font-abeeZee text-[20px]">
+            Loading...
+          </p>
+          <p className="text-white text-center mb-4 font-abeeZee text-[20px]">
+            Processing your data. Please wait.
+          </p>
+    
+          {/* Loader Spinner */}
+          <div className="loader rounded-full border-4 border-t-transparent border-white w-16 h-16 animate-spin"></div>
         </div>
       )}
 
       {completed && (
-        <div>
-          <h1>Process Completed</h1>
-          <p>Your data has been successfully processed!</p>
+        <div className="flex flex-col items-center justify-center">
+          <p className="text-white text-center mb-4 font-abeeZee text-[20px]">
+            Process Completed
+          </p>
+          <p className="text-white text-center mb-4 font-abeeZee text-[20px]">
+            Your data has been successfully processed!
+          </p>
+          <button
+            onClick={handleResetStatus}
+            className="w-[150px] h-[40px] mt-6 mx-auto bg-gray-200/90 backdrop-blur-md rounded-[35px] text-[#2C4C80] font-abeeZee font-medium text-[15px] leading-[26px] text-center flex items-center justify-center"
+          >
+            Add a new task!
+          </button>
+    
+          {/* Success Icon */}
+          <div className="w-16 h-16 bg-[url('/images/success-icon.png')] bg-cover"></div>
         </div>
       )}
+
+      <footer className="mt-10 sm:mt-16 flex items-center justify-center gap-6">          
+          <img src="/images/notion-logo.svg" alt="Notion Logo" className="w-24 h-24" />
+          <img src="/images/by.svg" alt="Third Logo" className="w-4 h-4" />          
+          <img src="/images/notiontemplateslogo.svg" alt="Notion Templates Logo" className="w-24 h-24" />
+        </footer>
     </div>
   );
 }

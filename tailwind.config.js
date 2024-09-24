@@ -11,6 +11,11 @@ module.exports = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        brunoAce: ['var(--font-bruno-ace)', 'sans-serif'],
+        lufga: ['var(--font-lufga)', 'sans-serif'],
+        abeeZee: ['var(--font-abeezee)', 'sans-serif'],
+      },
     },
   },
   plugins: [],
