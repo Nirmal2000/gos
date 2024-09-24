@@ -94,7 +94,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-800 to-blue-600 px-4">
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-800 to-blue-600 bg-custom-gradient px-4">
       {/* Title */}
       <h1 className="font-brunoAce text-white text-[64px] sm:text-[102px] leading-[78px] sm:leading-[123px] text-center mb-2 sm:mb-4">
         Goal OS
