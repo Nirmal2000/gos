@@ -44,7 +44,7 @@ export async function GET(req) {
   
   
 //   await fetch('https://gos-backend.onrender.com/api/process_data', {
-  await fetch('http://127.0.0.1:5000/api/process_data', {
+  await fetch(`${process.env.BACKEND_URL}/api/process_data`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
