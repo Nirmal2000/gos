@@ -76,8 +76,8 @@ export default function Home() {
 
         const pollStatus = async () => {          
           // const res = await fetch(process.env.PYTHON_API_CHECK_STATUS, {
-          // const res = await fetch('https://gos-backend.onrender.com/api/check_status', {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/check_status`, {
+          const res = await fetch('https://gos-backend.onrender.com/api/check_status', {
+          // const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/check_status`, {
             method: "GET",
             headers: {
               "Authorization": `Bearer ${token}`, // Send token in headers
@@ -100,8 +100,8 @@ export default function Home() {
   }, []);
 
   const handleResetStatus = async () => {
-    const res = await fetch(`${process.env.BACKEND_URL}/api/reset_status`, {
-    // const res = await fetch('https://gos-backend.onrender.com/api/reset_status', {
+    // const res = await fetch(`${process.env.BACKEND_URL}/api/reset_status`, {
+    const res = await fetch('https://gos-backend.onrender.com/api/reset_status', {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
