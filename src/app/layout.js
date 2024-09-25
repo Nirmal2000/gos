@@ -34,12 +34,12 @@ const abeeZee = ABeeZee({
 
 export const metadata = {
   title: "Goal OS",
-  description: "Goal OS",
+  description: "Goal OS",  
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en">      
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${brunoAce.variable} ${abeeZee.variable} antialiased`}
       >
