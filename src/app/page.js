@@ -119,7 +119,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen from-blue-800 to-blue-600 bg-custom-gradient px-4 pt-8 sm:pt-12">
+    <div className="relative flex flex-col items-center justify-start min-h-screen from-blue-800 to-blue-600 bg-custom-gradient px-4 pt-20 sm:pt-20">
       {/* Title */}
       <h1 className="font-brunoAce text-white text-[64px] sm:text-[102px] leading-[78px] sm:leading-[123px] text-center mb-1 sm:mb-2 mt-4 sm:mt-6">
         Goal OS
@@ -131,7 +131,7 @@ export default function Home() {
       </h2>
 
       {!loading && !completed && (
-        <form onSubmit={handleSubmit} className="relative w-full max-w-[628px]">
+        <form onSubmit={handleSubmit} className="relative w-full max-w-[628px] mt-[6rem]">
           {/* Input field container */}
           <div className="relative w-full h-[45px]">
             {/* Background with blur effect */}
@@ -154,7 +154,7 @@ export default function Home() {
           {/* Button */}
           <button
             type="submit"
-            className="w-[150px] h-[40px] mt-4 mx-auto bg-gray-200/90 backdrop-blur-md rounded-[30px] text-[#2C4C80] font-abeeZee font-medium text-[15px] leading-[24px] text-center flex items-center justify-center"
+            className="w-[160px] h-[40px] mt-4 mx-auto bg-gray-200/90 backdrop-blur-md rounded-[30px] text-[#2C4C80] font-abeeZee font-medium text-[15px] leading-[24px] text-center flex items-center justify-center"
           >
             {buttonLoading ? (
               <div className="loader rounded-full border-4 border-t-transparent border-[#2C4C80] w-4 h-4 animate-spin"></div>
@@ -166,7 +166,7 @@ export default function Home() {
       )}
 
       {loading && (
-        <div className="flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-center mt-[5rem]">
           <p className="text-white text-center mb-4 font-abeeZee text-[20px]">
             Loading...
           </p>
@@ -179,17 +179,14 @@ export default function Home() {
       )}
 
       {completed && (
-        <div className="flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-center mt-[5rem]">
           <p className="text-white text-center mb-2 font-abeeZee text-[20px]">
-            Process Completed
+          🥳 Process Completed 🥳
           </p>
+          <img src="/images/confetti.gif" alt="Confetti Celebration" className="w-full max-w-[400px] mb-4" />
           <p className="text-white text-center mb-4 font-abeeZee text-[15px]">
             Please check the Notion app
           </p>
-          
-    
-          {/* Success Icon */}
-          <div className="w-16 h-16 bg-[url('/images/success-icon.png')] bg-cover"></div>
         </div>
       )}
 
