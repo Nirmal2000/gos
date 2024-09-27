@@ -45,6 +45,8 @@ export default function Home() {
     if (currentPercent === -1 && loading) {
       setLoading(false);
       setCompleted(true);
+      localStorage.setItem('activation_key', "false");
+      localStorage.setItem('activation_key_', '');
     }
   }, [currentPercent, loading]); 
 
