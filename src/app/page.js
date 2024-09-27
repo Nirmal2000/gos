@@ -37,6 +37,7 @@ export default function Home() {
   useEffect(() => {
     if (currentPercent >= 0) {
       setLoading(true); // Set loading to true when currentPercent is 0 or above
+      setCompleted(false)
       if (currentPercent in loaderTexts) {
         setCurrentLoaderText(loaderTexts[currentPercent]); // Update loader text based on currentPercent
       }
@@ -55,8 +56,12 @@ export default function Home() {
     const eventSource = new EventSource(`https://gos-backend.onrender.com/stream/${key}`); // Adjust the URL for your server    
 
     eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);      
-      setCurrentPercent(data.percent);      
+      const data = JSON.parse(event.data);
+      
+      if (data.actkey === localStorage.getItem('activation_key_')){
+        console.log(data)
+        setCurrentPercent(data.percent);
+      }    
     };
 
     eventSource.onerror = (error) => {
