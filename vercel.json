@@ -1,9 +1,9 @@
 {
     "functions": {      
-      "api/**/*.js": {
+      "src/app/api/notion/callback/route.js": {
         "maxDuration": 30
       },
-      "src/api/**/*.js": {
+      "src/app/api/connect/route.js": {
         "maxDuration": 30
       }
     }
