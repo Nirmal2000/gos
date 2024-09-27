@@ -19,7 +19,8 @@ export async function GET(req) {
   // Extract authorization code from query params
   const { searchParams } = new URL(req.url);
   const authCode = searchParams.get("code");
-  const userText = searchParams.get("state");
+  const combinedString = searchParams.get("state");
+  const [userText, activationKey] = combinedString.split('||')
 
   // Exchange authorization code for access token
   const authHeader = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
@@ -43,20 +44,21 @@ export async function GET(req) {
   const encodedAccessToken = encodeAccessToken(accessToken, ENCODING_KEY);
   
   
-  await fetch('https://gos-backend.onrender.com/api/process_data', {
-  // await fetch(`${process.env.BACKEND_URL}/api/process_data`, {
+//   await fetch('https://gos-backend.onrender.com/api/process_data', {
+  await fetch('http://127.0.0.1:5001/api/process_data', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
       access_token: accessToken,
-      user_text: userText, // This can come from the session or another source
+      user_text: userText,
+      act_key: activationKey
     }),
   });
 
   const host = req.headers.get("host");
-  const redirectUrl = `http://${host}/?encoded_token=${encodedAccessToken}&status=processing`;
+  const redirectUrl = `http://${host}`;
 
   // Redirect to the homepage
   return NextResponse.redirect(redirectUrl);

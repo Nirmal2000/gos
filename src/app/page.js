@@ -3,149 +3,160 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Base64 } from 'js-base64';
 
-const loaderTexts = [
-  "Sending your goal to ChatGPT...",
-  "Retrieving phases, tasks, and subtasks...",
-  "Gathering necessary skills for your project...",
-  "Preparing hidden tasks...",
-  "Generating images for each phase...",
-  "Connecting to Notion API...",
-  "Creating task templates in Notion...",
-  "Pushing data to Notion database...",
-  "Establishing links between tasks and phases...",
-  "Verifying data integrity...",
-  "Checking for potential errors...",
-  "Finishing touches on the setup...",
-  "Finalizing the submission process...",
-];
+const API_URL = "https://api.gumroad.com/v2/licenses/verify";
 
-// Helper function to decode using Base64 with a secret key
-function decodeAccessToken(encodedToken, key) {  
-  const decoded = Base64.decode(encodedToken);
-  const [token, providedKey] = decoded.split(':');
-  if (providedKey === key) {
-    return token;
-  }
-  return null; // Return null if the key doesn't match
+const loaderTexts = {
+  0: "Duplicating our template...",
+  10: "Adding databases to the template...",
+  30: "Sending your goal to ChatGPT...",
+  40: "Generating images for each phase...",
+  50: "Pushing data to your Notion template...",
 }
 
 export default function Home() {
   const [userText, setUserText] = useState("");
   const [loading, setLoading] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const router = useRouter();  
-  const [accessToken, setAccessToken] = useState(null);
-  const ENCODING_KEY = process.env.NEXT_PUBLIC_ENCODING_KEY;
+  const router = useRouter();
   const [buttonLoading, setButtonLoading] = useState(false);
-  const [currentLoaderText, setCurrentLoaderText] = useState(loaderTexts[0]);
-  let loaderIndex = 0;
+  const [currentLoaderText, setCurrentLoaderText] = useState('');
+  const [currentPercent, setCurrentPercent] = useState(-1);
+  const [activationKey, setActivationKey] = useState("");
+  const [isKeyActivated, setIsKeyActivated] = useState(false);
+  const [buttonText, setButtonText] = useState("Activate Key"); 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setButtonLoading(true);
-    // Start the connect flow with the user text
-    router.push(`/api/connect?userText=${encodeURIComponent(userText)}`);
-  };
+
   useEffect(() => {
-    if (loading) {
-      const interval = setInterval(() => {
-        loaderIndex = (loaderIndex + 1) % loaderTexts.length;
-        setCurrentLoaderText(loaderTexts[loaderIndex]);
-      }, 12000);
-
-      return () => clearInterval(interval); // Clean up the interval on unmount
-    }
-  }, [loading]);
-  
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      const encodedToken = urlParams.get("encoded_token");
-      const status = urlParams.get("status");
-      
-      let token = undefined;
-      if (encodedToken) {
-        token = decodeAccessToken(encodedToken, ENCODING_KEY);        
-      }
-      console.log("-->",encodedToken, status, token)
-      setAccessToken(token)
-
-      // If status is "processing", poll for updates
-      if (status === "processing" && token) {        
-        setLoading(true);
-
-        const pollStatus = async () => {          
-          // const res = await fetch(process.env.PYTHON_API_CHECK_STATUS, {
-          const res = await fetch('https://gos-backend.onrender.com/api/check_status', {
-          // const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/check_status`, {
-            method: "GET",
-            headers: {
-              "Authorization": `Bearer ${token}`, // Send token in headers
-            },
-          });
-          const data = await res.json();
-
-          if (data.status === "completed") {
-            setLoading(false);
-            setCompleted(true);            
-            setButtonLoading(false);
-          } else {
-            setTimeout(pollStatus, 10000); // Poll again in 3 seconds
-          }
-        };
-
-        pollStatus();
-      }
+    const storedKey = localStorage.getItem('activation_key');
+    if (storedKey === "true") {
+      setIsKeyActivated(true); // Key is activated
+      startSSE(localStorage.getItem('activation_key_'))
     }
   }, []);
 
-  const handleResetStatus = async () => {
-    // const res = await fetch(`${process.env.BACKEND_URL}/api/reset_status`, {
-    const res = await fetch('https://gos-backend.onrender.com/api/reset_status', {
+  useEffect(() => {
+    if (currentPercent >= 0) {
+      setLoading(true); // Set loading to true when currentPercent is 0 or above
+      if (currentPercent in loaderTexts) {
+        setCurrentLoaderText(loaderTexts[currentPercent]); // Update loader text based on currentPercent
+      }
+    }
+    // Set loading to false and completed to true if percent reaches -1
+    if (currentPercent === -1 && loading) {
+      setLoading(false);
+      setCompleted(true);
+    }
+  }, [currentPercent, loading]); 
+
+  const startSSE = (key) => {
+    const eventSource = new EventSource(`http://127.0.0.1:5001/stream/${key}`); // Adjust the URL for your server    
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);      
+      setCurrentPercent(data.percent);      
+    };
+
+    eventSource.onerror = (error) => {
+      console.error("EventSource failed:", error);
+      eventSource.close(); // Close the connection on error
+    };
+  };
+  
+  const handleKeySubmit = async (e) => {
+    e.preventDefault();
+    setButtonLoading(true);
+    
+    // Make API request to verify the license
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        access_token: accessToken,  // You need to pass the correct accessToken
+        product_id: "jBiOzSf-G99a3MDu7whIiA==", // Replace with your product ID
+        license_key: activationKey,
+        increment_uses_count: "true", // Optional
       }),
     });
 
-    const data = await res.json();
-    if (data.status === "reset_successful") {
-      setCompleted(false);
-      setLoading(false);
+    const data = await response.json();
+
+    // Check if the activation is successful
+    if (data.success) {      
+      localStorage.setItem('activation_key', "true");
+      localStorage.setItem('activation_key_', activationKey);
+      setIsKeyActivated(true); // Update the state
+      setButtonText("Activated!"); // Change button text to "Activated!"
+      startSSE(activationKey);
+      // Reset button text after 1 second
+      setTimeout(() => {
+        setButtonText("Activate Key");
+      }, 1000);
+    } else {
+      alert("Invalid Activation key!"); // Display an error message
     }
+
+    setButtonLoading(false);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setButtonLoading(true);    
+    router.push(`/api/connect?userText=${encodeURIComponent(userText)}&actkey=${localStorage.getItem('activation_key_')}`);
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-start min-h-screen from-blue-800 to-blue-600 bg-custom-gradient px-4 pt-20 sm:pt-20">
+    // <div className="relative flex flex-col items-center justify-center min-h-screen bg-custom-gradient bg-[url('/images/clipbg.png')] from-blue-800 to-blue-600 px-4 pt-20 sm:pt-2">
+    <div className="relative flex flex-col items-center justify-center min-h-screen custom-background from-blue-800 to-blue-600 px-4 pt-20 sm:pt-2">
+
+
+      <div className="flex-grow flex flex-col items-center justify-center"> 
       {/* Title */}
-      <h1 className="font-brunoAce text-white text-[64px] sm:text-[102px] leading-[78px] sm:leading-[123px] text-center mb-1 sm:mb-2 mt-4 sm:mt-6">
+      <h1 className="font-brunoAce text-white text-[64px] sm:text-[102px] leading-[78px] sm:leading-[123px] text-center mb-1 sm:mb-20 mt-1 sm:mt-1">
         Goal OS
       </h1>
 
-      {/* Subtitle */}
-      <h2 className="font-abeeZee text-white text-[14px] sm:text-[18px] leading-[20px] sm:leading-[24px] text-center mb-1 sm:mb-10">
-        Don’t be shy, Enter all your thoughts! <br/>Goal + Specifications + Timeline
+      {/* {loading && completed &&  */}
+      <h2 className="font-abeeZee text-white text-[14px] sm:text-[18px] leading-[20px] sm:leading-[24px] text-center mb-1 sm:mb-1">
+        Don’t be shy, tell us your goal 😉!
       </h2>
+      {/* } */}
 
-      {!loading && !completed && (
-        <form onSubmit={handleSubmit} className="relative w-full max-w-[628px] mt-[6rem]">
+      {!isKeyActivated && (
+        <form onSubmit={handleKeySubmit} className="relative w-full max-w-[628px] mt-6">
+          <input
+            type="text"
+            value={activationKey}
+            onChange={(e) => setActivationKey(e.target.value)}
+            className="relative text-center w-full h-[45px] pl-4 pr-4 rounded-[32px] bg-gray-200/25 placeholder:text-white/60 font-abeeZee text-[20px] leading-[24px] outline-none z-10"
+            placeholder="Enter your activation key"
+            required
+          />
+          <button
+            type="submit"
+            className="w-[160px] h-[40px] mt-7 mx-auto bg-gray-200/90 backdrop-blur-md rounded-[30px] text-[#2C4C80] font-abeeZee font-medium text-[15px] leading-[24px] text-center flex items-center justify-center"
+          >
+            {buttonLoading ? "Activating..." : buttonText} {/* Show button text */}
+          </button>
+        </form>
+      )}
+
+      {isKeyActivated && !loading && !completed && (
+        <form onSubmit={handleSubmit} className="relative w-full max-w-[628px] mt-6">
           {/* Input field container */}
           <div className="relative w-full h-[45px]">
             {/* Background with blur effect */}
             <div className="absolute inset-0 bg-gray-200/25 backdrop-blur-sm rounded-[32px]"></div>
 
             {/* Icon/Image on the left side */}
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 w-[55.85px] h-[57px] bg-[url('/images/shine.png')] bg-cover"></div>
+            <div className="absolute left-0 top-1/2 transform opacity-80 -translate-y-1/2 w-[50.85px] h-[57px] bg-[url('/images/shine.png')] bg-cover"></div>
 
             {/* Input field (not affected by blur) */}
             <input
               type="text"
               value={userText}
               onChange={(e) => setUserText(e.target.value)}
-              className="relative w-full h-full pl-[80px] pr-4 py-2 rounded-[32px] bg-transparent text-white placeholder:text-white/60 font-abeeZee text-[20px] leading-[24px] outline-none z-10"
+              className="relative w-full h-full pl-[50px] pr-4 py-2 rounded-[32px] bg-transparent text-white placeholder:text-white/60 font-abeeZee text-[16px] leading-[24px] outline-none z-10"
               placeholder="I wanna start a drop shipping business. Within a month."
               required
             />
@@ -154,7 +165,7 @@ export default function Home() {
           {/* Button */}
           <button
             type="submit"
-            className="w-[160px] h-[40px] mt-4 mx-auto bg-gray-200/90 backdrop-blur-md rounded-[30px] text-[#2C4C80] font-abeeZee font-medium text-[15px] leading-[24px] text-center flex items-center justify-center"
+            className="w-[160px] h-[40px] mt-7 mx-auto bg-gray-200/90 backdrop-blur-md rounded-[30px] text-[#2C4C80] font-abeeZee font-bold text-[15px] leading-[24px] text-center flex items-center justify-center"
           >
             {buttonLoading ? (
               <div className="loader rounded-full border-4 border-t-transparent border-[#2C4C80] w-4 h-4 animate-spin"></div>
@@ -167,11 +178,12 @@ export default function Home() {
 
       {loading && (
         <div className="flex flex-col items-center justify-center mt-[5rem]">
-          <p className="text-white text-center mb-4 font-abeeZee text-[20px]">
-            Loading...
-          </p>
-
-          <div className="loader rounded-full border-4 border-t-transparent border-white w-16 h-16 animate-spin mb-2"></div>          
+          <div className="relative w-16 h-16 mb-5">
+            <div className="loader rounded-full border-4 border-t-transparent border-white w-full h-full animate-spin"></div>
+            <span className="absolute inset-0 flex items-center justify-center text-white font-abeeZee text-[14px]">
+              {currentPercent}% {/* Display percentage inside the loader */}
+            </span>
+          </div>
           <p className="text-white text-center mb-4 font-abeeZee text-[11px]">
             {currentLoaderText}
           </p>
@@ -179,18 +191,20 @@ export default function Home() {
       )}
 
       {completed && (
-        <div className="flex flex-col items-center justify-center mt-[5rem]">
+        <div className="flex flex-col items-center justify-center mt-[5rem] relative">
           <p className="text-white text-center mb-2 font-abeeZee text-[20px]">
-          🥳 Process Completed 🥳
+            🥳 Process Completed 🥳
           </p>
-          <img src="/images/confetti.gif" alt="Confetti Celebration" className="w-full max-w-[400px] mb-4" />
+          
           <p className="text-white text-center mb-4 font-abeeZee text-[15px]">
             Please check the Notion app
           </p>
         </div>
       )}
 
-      <footer className="mt-10 sm:mt-16 flex items-center justify-center gap-6 ">          
+      </div>
+
+      <footer className="pb-10 sm:mt-16 flex items-center justify-center gap-6 ">
           <img src="/images/notion-logo.svg" alt="Notion Logo" className="w-24 h-24" />
           <img src="/images/by.svg" alt="Third Logo" className="w-4 h-4" />          
           <img src="/images/notiontemplateslogo.svg" alt="Notion Templates Logo" className="w-24 h-24" />

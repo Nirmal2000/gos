@@ -57,3 +57,9 @@ body {
     background: rgba(254, 167, 222, 0.11);
   }
   
+
+  .custom-background {
+    background-image: url('/images/clipbg.png'), linear-gradient(270.33deg, #2B5482 23.23%, #2E387A 82.13%);
+    background-size: cover; /* or use contain based on your requirement */
+    background-position: center;
+}
