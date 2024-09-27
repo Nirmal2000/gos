@@ -49,7 +49,8 @@ export default function Home() {
   }, [currentPercent, loading]); 
 
   const startSSE = (key) => {
-    const eventSource = new EventSource(`http://127.0.0.1:5001/stream/${key}`); // Adjust the URL for your server    
+    // const eventSource = new EventSource(`http://127.0.0.1:5001/stream/${key}`); // Adjust the URL for your server    
+    const eventSource = new EventSource(`https://gos-backend.onrender.com/stream/${key}`); // Adjust the URL for your server    
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);      
