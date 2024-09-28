@@ -55,8 +55,12 @@ export default function Home() {
     // const eventSource = new EventSource(`http://127.0.0.1:5001/stream/${key}`); // Adjust the URL for your server    
     const eventSource = new EventSource(`https://gos-backend.onrender.com/stream/${key}`); // Adjust the URL for your server    
 
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+    eventSource.onmessage = (event) => {  
+      let eventDat = event.data          
+      if (event.data.startsWith("b'")) {        
+        eventDat = event.data.substring(2, event.data.length - 1);
+      }
+      const data = JSON.parse(eventDat);
       
       if (data.actkey === localStorage.getItem('activation_key_')){
         console.log(data)

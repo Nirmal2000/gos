@@ -27,7 +27,7 @@ export async function GET(req) {
   const tokenResponse = await fetch(TOKEN_URL, {
     method: "POST",
     headers: {
-      Authorization: `Basic ${authHeader}`,
+      "Authorization": `Basic ${authHeader}`,
       "Content-Type": "application/json",
       "Notion-Version": "2022-06-28",
     },
