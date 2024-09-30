@@ -38,6 +38,11 @@ export async function GET(req) {
     }),
   });
 
+  if (!tokenResponse.ok) {
+    const error = await tokenResponse.text();
+    throw new Error(`Failed to fetch access token: ${error}`);
+  }
+
 
   const tokenData = await tokenResponse.json();
   const accessToken = tokenData.access_token;
