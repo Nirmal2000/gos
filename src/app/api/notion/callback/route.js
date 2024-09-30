@@ -42,6 +42,7 @@ export async function GET(req) {
   const tokenData = await tokenResponse.json();
   const accessToken = tokenData.access_token;
   const templateId = tokenData.duplicated_template_id;
+  console.log(templateId)
   const encodedAccessToken = encodeAccessToken(accessToken, ENCODING_KEY);
   
   
@@ -59,9 +60,9 @@ export async function GET(req) {
     }),
   });
 
-  const host = req.headers.get("host");
-  const redirectUrl = `http://${host}`;
+  // const host = req.headers.get("host");
+  // const redirectUrl = `http://${host}`;
 
   // Redirect to the homepage
-  return NextResponse.redirect(redirectUrl);
+  return NextResponse.redirect("https://gos-xi.vercel.app");
 }
