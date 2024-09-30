@@ -41,6 +41,7 @@ export async function GET(req) {
 
   const tokenData = await tokenResponse.json();
   const accessToken = tokenData.access_token;
+  const templateId = tokenData.duplicated_template_id;
   const encodedAccessToken = encodeAccessToken(accessToken, ENCODING_KEY);
   
   
@@ -52,6 +53,7 @@ export async function GET(req) {
     },
     body: JSON.stringify({
       access_token: accessToken,
+      template_id: templateId,
       user_text: userText,
       act_key: activationKey
     }),
