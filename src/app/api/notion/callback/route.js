@@ -69,5 +69,6 @@ export async function GET(req) {
   // const redirectUrl = `http://${host}`;
 
   // Redirect to the homepage
+  // return NextResponse.redirect("http://localhost:3000");
   return NextResponse.redirect("https://gos-xi.vercel.app");
 }

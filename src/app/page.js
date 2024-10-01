@@ -6,12 +6,32 @@ import { Base64 } from 'js-base64';
 const API_URL = "https://api.gumroad.com/v2/licenses/verify";
 
 const loaderTexts = {
-  0: "Duplicating our template...",
-  10: "Adding databases to the template...",
-  30: "Sending your goal to ChatGPT...",
-  40: "Generating images for each phase...",
-  50: "Pushing data to your Notion template...",
-}
+  0: 'Duplicating our template...',
+  2: 'In progress: Duplicating our template...',
+  5: 'In progress: Duplicating our template...',
+  7: 'In progress: Duplicating our template...',
+  10: 'Adding databases to the template...',
+  15: 'In progress: Adding databases to the template...',
+  20: 'In progress: Adding databases to the template...',
+  25: 'In progress: Adding databases to the template...',
+  30: 'Sending your goal to ChatGPT...',
+  35: 'In progress: Sending your goal to ChatGPT...',
+  40: 'In progress: Sending your goal to ChatGPT...',
+  45: 'In progress: Sending your goal to ChatGPT...',
+  50: 'Generating images for each phase...',
+  55: 'In progress: Generating images for each phase...',
+  60: 'In progress: Generating images for each phase...',
+  65: 'In progress: Generating images for each phase...',
+  70: 'Pushing data to your Notion template...',
+  75: 'In progress: Pushing data to your Notion template...',
+  80: 'In progress: Pushing data to your Notion template...',
+  85: 'In progress: Pushing data to your Notion template...',
+  90: 'Finalizing setup...',
+  92: 'In progress: Finalizing setup...',
+  94: 'In progress: Finalizing setup...',
+  96: 'In progress: Finalizing setup...',  
+};
+
 
 export default function Home() {
   const [userText, setUserText] = useState("");
@@ -19,8 +39,8 @@ export default function Home() {
   const [completed, setCompleted] = useState(false);
   const router = useRouter();
   const [buttonLoading, setButtonLoading] = useState(false);
-  const [currentLoaderText, setCurrentLoaderText] = useState('');
-  const [currentPercent, setCurrentPercent] = useState(-1);
+  const [currentLoaderText, setCurrentLoaderText] = useState(loaderTexts[0]);
+  const [currentPercent, setCurrentPercent] = useState(0);
   const [activationKey, setActivationKey] = useState("");
   const [isKeyActivated, setIsKeyActivated] = useState(false);
   const [buttonText, setButtonText] = useState("Activate Key"); 
@@ -29,50 +49,51 @@ export default function Home() {
   useEffect(() => {
     const storedKey = localStorage.getItem('activation_key');
     if (storedKey === "true") {
-      setIsKeyActivated(true); // Key is activated
-      startSSE(localStorage.getItem('activation_key_'))
+      setIsKeyActivated(true); // Key is activated      
+      pollStatus()      
+      const intervalId = setInterval(pollStatus, 40000); // Poll every 30 seconds
+      return () => clearInterval(intervalId);
     }
   }, []);
 
   useEffect(() => {
-    if (currentPercent >= 0) {
-      setLoading(true); // Set loading to true when currentPercent is 0 or above
-      setCompleted(false)
-      if (currentPercent in loaderTexts) {
-        setCurrentLoaderText(loaderTexts[currentPercent]); // Update loader text based on currentPercent
-      }
+    let intervalId;
+    if (loading) {
+      intervalId = setInterval(() => {
+        const nextPercent = currentPercent + 1;
+        if (nextPercent <= 99) {
+          setCurrentPercent(nextPercent);
+          setCurrentLoaderText(loaderTexts[nextPercent] || currentLoaderText);
+        } 
+      }, 2000);
     }
-    // Set loading to false and completed to true if percent reaches -1
-    if (currentPercent === -1 && loading) {
-      setLoading(false);
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, [currentPercent, loading]);
+
+  const pollStatus = async () => {
+    const token = localStorage.getItem('activation_key_'); // Assuming token is stored this way
+
+    const res = await fetch('https://gos-backend.onrender.com/api/check_status', {
+    // const res = await fetch('http://127.0.0.1:5001/api/check_status', {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+    console.log('-->',res)
+    const data = await res.json();
+
+    if (data.status === "processing") {
+      setLoading(true);
+    } else if (data.status === "not_started" && loading) {
       setCompleted(true);
+      setLoading(false);
       localStorage.setItem('activation_key', "false");
       localStorage.setItem('activation_key_', '');
     }
-  }, [currentPercent, loading]); 
-
-  const startSSE = (key) => {
-    // const eventSource = new EventSource(`http://127.0.0.1:5001/stream/${key}`); // Adjust the URL for your server    
-    const eventSource = new EventSource(`https://gos-backend.onrender.com/stream/${key}`); // Adjust the URL for your server    
-
-    eventSource.onmessage = (event) => {  
-      let eventDat = event.data          
-      if (event.data.startsWith("b'")) {        
-        eventDat = event.data.substring(2, event.data.length - 1);
-      }
-      const data = JSON.parse(eventDat);
-      
-      if (data.actkey === localStorage.getItem('activation_key_')){
-        console.log(data)
-        setCurrentPercent(data.percent);
-      }    
-    };
-
-    eventSource.onerror = (error) => {
-      console.error("EventSource failed:", error);
-      eventSource.close(); // Close the connection on error
-    };
   };
+  
   
   const handleKeySubmit = async (e) => {
     e.preventDefault();
@@ -98,9 +119,14 @@ export default function Home() {
       localStorage.setItem('activation_key', "true");
       localStorage.setItem('activation_key_', activationKey);
       setIsKeyActivated(true); // Update the state
-      setButtonText("Activated!"); // Change button text to "Activated!"
-      startSSE(activationKey);
+      setButtonText("Activated!"); // Change button text to "Activated!"      
       // Reset button text after 1 second
+      pollStatus();
+      const intervalId = setInterval(pollStatus, 40000); // Setup the interval here as well
+      setTimeout(() => {
+        setButtonText("Activate Key");
+      }, 1000);
+      return () => clearInterval(intervalId); 
       setTimeout(() => {
         setButtonText("Activate Key");
       }, 1000);
@@ -113,8 +139,8 @@ export default function Home() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setButtonLoading(true);    
-    router.push(`/api/connect?userText=${encodeURIComponent(userText)}&actkey=${localStorage.getItem('activation_key_')}`);
+    setButtonLoading(true);
+    router.push(`/api/connect?userText=${encodeURIComponent(userText)}&actkey=${localStorage.getItem('activation_key_')}`);    
   };
 
   return (
