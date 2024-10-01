@@ -136,6 +136,9 @@ export default function Home() {
 
       {!isKeyActivated && (
         <form onSubmit={handleKeySubmit} className="relative w-full max-w-[628px] mt-6">
+          <p className="font-abeeZee text-white text-[10px] sm:text-[15px] leading-[20px] sm:leading-[24px] text-center mb-1 sm:mb-1">
+        Get your activation key <a href="https://sachinsoundar.gumroad.com/l/goalos" className="underline">here!</a>
+          </p>
           <input
             type="text"
             value={activationKey}
