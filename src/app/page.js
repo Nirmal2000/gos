@@ -44,6 +44,7 @@ export default function Home() {
   const [activationKey, setActivationKey] = useState("");
   const [isKeyActivated, setIsKeyActivated] = useState(false);
   const [buttonText, setButtonText] = useState("Activate Key"); 
+  const [curStatus, setCurStatus] = useState("not_started");
 
 
   useEffect(() => {
@@ -51,7 +52,7 @@ export default function Home() {
     if (storedKey === "true") {
       setIsKeyActivated(true); // Key is activated      
       pollStatus()      
-      const intervalId = setInterval(pollStatus, 40000); // Poll every 30 seconds
+      const intervalId = setInterval(pollStatus, 30000); // Poll every 30 seconds
       return () => clearInterval(intervalId);
     }
   }, []);
@@ -81,18 +82,22 @@ export default function Home() {
         "Authorization": `Bearer ${token}`,
       },
     });
-    console.log('-->',res)
     const data = await res.json();
+    console.log('-->',data)
+    
+    setCurStatus(data.status);
+  };
 
-    if (data.status === "processing") {
+  useEffect(()=>{
+    if (curStatus === "processing") {
       setLoading(true);
-    } else if (data.status === "not_started" && loading) {
+    } else if (curStatus === "not_started" && loading) {
       setCompleted(true);
       setLoading(false);
       localStorage.setItem('activation_key', "false");
       localStorage.setItem('activation_key_', '');
     }
-  };
+  }, [curStatus])
   
   
   const handleKeySubmit = async (e) => {
@@ -122,7 +127,7 @@ export default function Home() {
       setButtonText("Activated!"); // Change button text to "Activated!"      
       // Reset button text after 1 second
       pollStatus();
-      const intervalId = setInterval(pollStatus, 40000); // Setup the interval here as well
+      const intervalId = setInterval(pollStatus, 30000); // Setup the interval here as well
       setTimeout(() => {
         setButtonText("Activate Key");
       }, 1000);
