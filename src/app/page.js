@@ -5,99 +5,15 @@ import { Base64 } from 'js-base64';
 
 const API_URL = "https://api.gumroad.com/v2/licenses/verify";
 
-const loaderTexts = {
-  0: 'Duplicating our template...',
-  2: 'In progress: Duplicating our template...',
-  5: 'In progress: Duplicating our template...',
-  7: 'In progress: Duplicating our template...',
-  10: 'Adding databases to the template...',
-  15: 'In progress: Adding databases to the template...',
-  20: 'In progress: Adding databases to the template...',
-  25: 'In progress: Adding databases to the template...',
-  30: 'Sending your goal to ChatGPT...',
-  35: 'In progress: Sending your goal to ChatGPT...',
-  40: 'In progress: Sending your goal to ChatGPT...',
-  45: 'In progress: Sending your goal to ChatGPT...',
-  50: 'Generating images for each phase...',
-  55: 'In progress: Generating images for each phase...',
-  60: 'In progress: Generating images for each phase...',
-  65: 'In progress: Generating images for each phase...',
-  70: 'Pushing data to your Notion template...',
-  75: 'In progress: Pushing data to your Notion template...',
-  80: 'In progress: Pushing data to your Notion template...',
-  85: 'In progress: Pushing data to your Notion template...',
-  90: 'Finalizing setup...',
-  92: 'In progress: Finalizing setup...',
-  94: 'In progress: Finalizing setup...',
-  96: 'In progress: Finalizing setup...',  
-};
 
 
 export default function Home() {
-  const [userText, setUserText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [completed, setCompleted] = useState(false);
+  const [userText, setUserText] = useState("");  
   const router = useRouter();
-  const [buttonLoading, setButtonLoading] = useState(false);
-  const [currentLoaderText, setCurrentLoaderText] = useState(loaderTexts[0]);
-  const [currentPercent, setCurrentPercent] = useState(0);
-  const [activationKey, setActivationKey] = useState("");
-  const [isKeyActivated, setIsKeyActivated] = useState(false);
+  const [buttonLoading, setButtonLoading] = useState(false);  
+  const [activationKey, setActivationKey] = useState("");  
   const [buttonText, setButtonText] = useState("Activate Key"); 
-  const [curStatus, setCurStatus] = useState("not_started");
-
-
-  useEffect(() => {
-    const storedKey = localStorage.getItem('activation_key');
-    if (storedKey === "true") {
-      setIsKeyActivated(true); // Key is activated      
-      pollStatus()      
-      const intervalId = setInterval(pollStatus, 30000); // Poll every 30 seconds
-      return () => clearInterval(intervalId);
-    }
-  }, []);
-
-  useEffect(() => {
-    let intervalId;
-    if (loading) {
-      intervalId = setInterval(() => {
-        const nextPercent = currentPercent + 1;
-        if (nextPercent <= 99) {
-          setCurrentPercent(nextPercent);
-          setCurrentLoaderText(loaderTexts[nextPercent] || currentLoaderText);
-        } 
-      }, 2000);
-    }
-
-    return () => clearInterval(intervalId); // Cleanup on unmount
-  }, [currentPercent, loading]);
-
-  const pollStatus = async () => {
-    const token = localStorage.getItem('activation_key_'); // Assuming token is stored this way
-
-    const res = await fetch('https://gos-backend.onrender.com/api/check_status', {
-    // const res = await fetch('http://127.0.0.1:5001/api/check_status', {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
-    console.log('-->',data)
-    
-    setCurStatus(data.status);
-  };
-
-  useEffect(()=>{
-    if (curStatus === "processing") {
-      setLoading(true);
-    } else if (curStatus === "not_started" && loading) {
-      setCompleted(true);
-      setLoading(false);
-      localStorage.setItem('activation_key', "false");
-      localStorage.setItem('activation_key_', '');
-    }
-  }, [curStatus])
+  const [isKeyActivated, setIsKeyActivated] = useState()
   
   
   const handleKeySubmit = async (e) => {
@@ -120,21 +36,9 @@ export default function Home() {
     const data = await response.json();
 
     // Check if the activation is successful
-    if (data.success) {      
-      localStorage.setItem('activation_key', "true");
-      localStorage.setItem('activation_key_', activationKey);
-      setIsKeyActivated(true); // Update the state
-      setButtonText("Activated!"); // Change button text to "Activated!"      
-      // Reset button text after 1 second
-      pollStatus();
-      const intervalId = setInterval(pollStatus, 30000); // Setup the interval here as well
-      setTimeout(() => {
-        setButtonText("Activate Key");
-      }, 1000);
-      return () => clearInterval(intervalId); 
-      setTimeout(() => {
-        setButtonText("Activate Key");
-      }, 1000);
+    if (data.success) {            
+      setIsKeyActivated(true); // Update the state      
+      
     } else {
       alert("Invalid Activation key!"); // Display an error message
     }
@@ -143,13 +47,12 @@ export default function Home() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setButtonLoading(true);
+    e.preventDefault();   
+    setButtonLoading(true); 
     router.push(`/api/connect?userText=${encodeURIComponent(userText)}&actkey=${localStorage.getItem('activation_key_')}`);    
   };
 
-  return (
-    // <div className="relative flex flex-col items-center justify-center min-h-screen bg-custom-gradient bg-[url('/images/clipbg.png')] from-blue-800 to-blue-600 px-4 pt-20 sm:pt-2">
+  return (    
     <div className="relative flex flex-col items-center justify-center min-h-screen custom-background from-blue-800 to-blue-600 px-4 pt-20 sm:pt-2">
 
 
@@ -158,8 +61,7 @@ export default function Home() {
       <h1 className="font-brunoAce text-white text-[64px] sm:text-[102px] leading-[78px] sm:leading-[123px] text-center mb-1 sm:mb-20 mt-1 sm:mt-1">
         Goal OS
       </h1>
-
-      {/* {loading && completed &&  */}
+      
       <h2 className="font-abeeZee text-white text-[14px] sm:text-[18px] leading-[20px] sm:leading-[24px] text-center mb-1 sm:mb-1">
         Don’t be shy, tell us your goal 😉!
       </h2>
@@ -187,7 +89,7 @@ export default function Home() {
         </form>
       )}
 
-      {isKeyActivated && !loading && !completed && (
+      {isKeyActivated && (
         <form onSubmit={handleSubmit} className="relative w-full max-w-[628px] mt-6">
           {/* Input field container */}
           <div className="relative w-full h-[45px]">
@@ -220,32 +122,6 @@ export default function Home() {
             )}
           </button>
         </form>
-      )}
-
-      {loading && (
-        <div className="flex flex-col items-center justify-center mt-[5rem]">
-          <div className="relative w-16 h-16 mb-5">
-            <div className="loader rounded-full border-4 border-t-transparent border-white w-full h-full animate-spin"></div>
-            <span className="absolute inset-0 flex items-center justify-center text-white font-abeeZee text-[14px]">
-              {currentPercent}% {/* Display percentage inside the loader */}
-            </span>
-          </div>
-          <p className="text-white text-center mb-4 font-abeeZee text-[11px]">
-            {currentLoaderText}
-          </p>
-        </div>
-      )}
-
-      {completed && (
-        <div className="flex flex-col items-center justify-center mt-[5rem] relative">
-          <p className="text-white text-center mb-2 font-abeeZee text-[20px]">
-            🥳 Process Completed 🥳
-          </p>
-          
-          <p className="text-white text-center mb-4 font-abeeZee text-[15px]">
-            Please check the Notion app
-          </p>
-        </div>
       )}
 
       </div>

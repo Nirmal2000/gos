@@ -63,12 +63,9 @@ export async function GET(req) {
       user_text: userText,
       act_key: activationKey
     }),
-  });
-
-  // const host = req.headers.get("host");
-  // const redirectUrl = `http://${host}`;
+  });  
 
   // Redirect to the homepage
-  // return NextResponse.redirect("http://localhost:3000");
-  return NextResponse.redirect("https://gos-xi.vercel.app");
+  return NextResponse.redirect("http://localhost:3000/completed");
+  // return NextResponse.redirect("https://gos-xi.vercel.app/completed");
 }
