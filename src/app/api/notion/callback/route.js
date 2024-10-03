@@ -66,6 +66,6 @@ export async function GET(req) {
   });  
 
   // Redirect to the homepage
-  return NextResponse.redirect("http://localhost:3000/completed");
-  // return NextResponse.redirect("https://gos-xi.vercel.app/completed");
+  // return NextResponse.redirect("http://localhost:3000/completed");
+  return NextResponse.redirect("https://gos-xi.vercel.app/completed");
 }
