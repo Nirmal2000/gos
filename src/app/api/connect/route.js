@@ -2,8 +2,11 @@
 import { NextResponse } from "next/server";
 
 const CLIENT_ID = process.env.CLIENT_ID;
-const REDIRECT_URI = process.env.REDIRECT_URI;
-const AUTH_URL = `https://api.notion.com/v1/oauth/authorize?client_id=${CLIENT_ID}&response_type=code&owner=user&redirect_uri=${REDIRECT_URI}`;
+const isProduction = process.env.NODE_ENV === 'production';
+const BASE_URL = isProduction
+  ? process.env.NEXT_PUBLIC_PROD_URL
+  : process.env.NEXT_PUBLIC_DEV_URL;
+const REDIRECT_URI = `${BASE_URL}/api/notion/callback`;
 
 export async function GET(req) {
     const { searchParams } = new URL(req.url);
@@ -11,10 +14,13 @@ export async function GET(req) {
     const actKey = searchParams.get("actkey");
     const combinedString = `${userText}||${actKey}`;
   
-    // Store the userText in the session or pass it along in the redirect URL
-    // In this case, we'll pass it to the callback as a query param
-    const authUrl = `https://api.notion.com/v1/oauth/authorize?client_id=${CLIENT_ID}&response_type=code&owner=user&redirect_uri=${REDIRECT_URI}&state=${encodeURIComponent(combinedString)}`;
-    
-    // Redirect to Notion's OAuth page
-    return NextResponse.redirect(authUrl);
+    // Construct Notion's OAuth URL with all required parameters
+    const authUrl = new URL('https://api.notion.com/v1/oauth/authorize');
+    authUrl.searchParams.append('client_id', CLIENT_ID);
+    authUrl.searchParams.append('response_type', 'code');
+    authUrl.searchParams.append('owner', 'user');
+    authUrl.searchParams.append('redirect_uri', REDIRECT_URI);
+    authUrl.searchParams.append('state', combinedString);
+
+    return NextResponse.redirect(authUrl.toString());
   }

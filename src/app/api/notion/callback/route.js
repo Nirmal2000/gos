@@ -5,9 +5,11 @@ import { Base64 } from 'js-base64';
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const TOKEN_URL = "https://api.notion.com/v1/oauth/token";
-const REDIRECT_URI = process.env.REDIRECT_URI;
-
-// const PYTHON_API_URL = process.env.PYTHON_API_URL;
+const isProduction = process.env.NODE_ENV === 'production';
+const BASE_URL = isProduction
+  ? process.env.NEXT_PUBLIC_PROD_URL
+  : process.env.NEXT_PUBLIC_DEV_URL;
+const REDIRECT_URI = `${BASE_URL}/api/notion/callback`;
 const ENCODING_KEY = process.env.ENCODING_KEY;
 
 function encodeAccessToken(token, key) {
@@ -45,14 +47,18 @@ export async function GET(req) {
 
 
   const tokenData = await tokenResponse.json();
+  console.log(tokenData);
   const accessToken = tokenData.access_token;
   const templateId = tokenData.duplicated_template_id;
-  console.log(templateId)
+  console.log(accessToken, templateId, activationKey)
   const encodedAccessToken = encodeAccessToken(accessToken, ENCODING_KEY);
   
   
-  await fetch('https://gos-backend.onrender.com/api/process_data', {
-  // await fetch('http://127.0.0.1:5001/api/process_data', {
+  const BACKEND_BASE = isProduction
+    ? process.env.NEXT_PUBLIC_PROD_BACKEND_BASE
+    : process.env.NEXT_PUBLIC_DEV_BACKEND_BASE;
+
+  await fetch(`${BACKEND_BASE}/api/process_data`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -65,7 +71,9 @@ export async function GET(req) {
     }),
   });  
 
-  // Redirect to the homepage
-  // return NextResponse.redirect("http://localhost:3000/completed");
-  return NextResponse.redirect("https://gos-xi.vercel.app/completed");
+  const BASE_URL = isProduction
+    ? process.env.NEXT_PUBLIC_PROD_URL
+    : process.env.NEXT_PUBLIC_DEV_URL;
+
+  return NextResponse.redirect(`${BASE_URL}/completed`);
 }
